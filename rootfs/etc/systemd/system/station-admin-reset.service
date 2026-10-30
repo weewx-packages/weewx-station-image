@@ -1,0 +1,16 @@
+# A forgotten password needs no login: whoever can write to the boot partition of
+# the card holds the station anyway. The file is removed, so it works only once.
+[Unit]
+Description=Reset the administrator password of the WeeWX station
+ConditionPathExists=/boot/firmware/reset-admin-password
+Before=station-admin.service
+After=boot-firmware.mount
+RequiresMountsFor=/boot/firmware
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/rm -f /var/lib/weewx/station-admin/password.json
+ExecStartPost=/usr/bin/rm -f /boot/firmware/reset-admin-password
+
+[Install]
+WantedBy=multi-user.target

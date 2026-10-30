@@ -1,0 +1,56 @@
+#!/bin/sh
+# Copyright (c) 2026 Manuel Hilgert <hilman2@gmail.com>
+#
+# The only root actions of the station administration, which runs as weewx. The
+# sudoers rule in /etc/sudoers.d/station allows this script and nothing else, so
+# every argument is checked here.
+set -eu
+export DEBIAN_FRONTEND=noninteractive
+action=${1:-}
+[ $# -gt 0 ] && shift
+
+case "$action" in
+    weewx-stop)
+        # Blocks on purpose: the callers go on to change the database, which WeeWX
+        # must have closed by then.
+        exec systemctl stop weewx
+        ;;
+    weewx-start|weewx-restart)
+        # WeeWX can wait a long time for the clock, and the caller must not.
+        exec systemctl --no-block "${action#weewx-}" weewx
+        ;;
+    weewx-enable)
+        exec systemctl enable weewx
+        ;;
+    admin-restart)
+        # Delayed, so the page can still read how the job that asked for it ended.
+        exec systemd-run --quiet --on-active=6 --unit=station-admin-restart \
+            systemctl restart station-admin
+        ;;
+    set-timezone)
+        case "${1:-}" in
+            *..*|/*|'') echo "Not a time zone" >&2; exit 2 ;;
+        esac
+        [ -f "/usr/share/zoneinfo/$1" ] || { echo "Not a time zone" >&2; exit 2; }
+        exec timedatectl set-timezone "$1"
+        ;;
+    apt-install)
+        for package in "$@"; do
+            printf '%s\n' "$package" | grep -Eq '^[a-z0-9][a-z0-9+.-]+$' || {
+                echo "Not a package name: $package" >&2; exit 2; }
+        done
+        apt-get update
+        exec apt-get install -y --no-install-recommends -- "$@"
+        ;;
+    apt-upgrade)
+        apt-get update
+        exec apt-get upgrade -y
+        ;;
+    reboot|poweroff)
+        exec systemctl --no-block "$action"
+        ;;
+    *)
+        echo "Unknown action: $action" >&2
+        exit 2
+        ;;
+esac

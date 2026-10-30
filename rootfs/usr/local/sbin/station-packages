@@ -1,0 +1,6 @@
+#!/bin/sh
+# Copyright (c) 2026 Manuel Hilgert <hilman2@gmail.com>
+#
+# Package manager for this station: station-packages update rtldavis
+export PYTHONPATH=/etc/weewx/bin:/usr/share/weewx
+exec python3 -m user.packages "$@" --config /etc/weewx/weewx.conf

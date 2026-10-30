@@ -1,0 +1,6 @@
+Types: deb
+URIs: https://weewx.com/apt/python3
+Suites: buster
+Components: main
+Architectures: all
+Signed-By: /etc/apt/keyrings/weewx.asc

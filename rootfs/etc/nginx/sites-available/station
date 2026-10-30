@@ -1,0 +1,39 @@
+# The administration only answers from the local network, also if the weather
+# pages are forwarded to the internet.
+geo $admin_allowed {
+    default 0;
+    127.0.0.0/8 1;
+    10.0.0.0/8 1;
+    172.16.0.0/12 1;
+    192.168.0.0/16 1;
+    169.254.0.0/16 1;
+    ::1/128 1;
+    fc00::/7 1;
+    fe80::/10 1;
+}
+
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    root /var/www/html/weewx;
+    index index.html;
+    absolute_redirect off;
+
+    # Until the first report exists, the administration is the start page.
+    location = / {
+        try_files /index.html @admin;
+    }
+    location @admin {
+        return 302 /admin/;
+    }
+    location /admin/ {
+        if ($admin_allowed = 0) {
+            return 403;
+        }
+        proxy_pass http://127.0.0.1:8377;
+        proxy_set_header Host $host;
+        proxy_read_timeout 600;
+        proxy_request_buffering off;
+        client_max_body_size 2g;
+    }
+}
