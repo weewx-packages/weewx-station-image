@@ -46,8 +46,8 @@ names do not work on your computer, use the IP address your router shows.
 
 There is no default password. On the first visit the page asks you to choose one.
 Then the **Station** page asks for your kind of station, its name, position, altitude,
-time zone and units. **Save and start** starts WeeWX, and the **Status** page shows what
-the receiver is doing.
+time zone, units and language. **Save and start** starts WeeWX, and the **Status** page
+shows what the receiver is doing.
 
 For an Ecowitt station, enter the address and port shown on the **Station** page into
 WS View Plus, under **Weather Services**, **Customized**.
@@ -78,6 +78,9 @@ the Raspberry Pi. The page then asks for a new password. Settings and data stay.
 - The administration uses plain HTTP, and the Ecowitt upload has no password. Keep the
   station on a network you trust.
 - Belchertown loads its charts from a public server, so viewers need internet access.
+- The image has 30 languages for dates and numbers. Belchertown has text in German,
+  French, Italian and Catalan, in part. All other text stays in English, and the
+  administration is in English only.
 
 ## Development
 

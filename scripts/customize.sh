@@ -26,9 +26,13 @@ apt-get install -y --no-install-recommends \
     nginx python3-numpy python3-packaging rtl-sdr unattended-upgrades
 
 # WeeWX and Belchertown format dates and numbers through the system's locales,
-# and the base image has only en_GB. Generate one for each language Belchertown
-# has a translation in, so that a station can use it without a terminal.
-sed -Ei 's/^# *((de_DE|fr_FR|it_IT|ca_ES)\.UTF-8 UTF-8)$/\1/' /etc/locale.gen
+# and the base image has only en_GB. The station page offers what is generated
+# here, because a station has no way to add one without a terminal. The grep stops
+# the build on a name that /etc/locale.gen does not know.
+for name in $LOCALES; do
+    sed -i "s/^# *\($name\.UTF-8 UTF-8\)\$/\1/" /etc/locale.gen
+    grep -q "^$name\.UTF-8 UTF-8\$" /etc/locale.gen
+done
 locale-gen
 
 # The WeeWX package looks for this directory to decide whether systemd runs. In
