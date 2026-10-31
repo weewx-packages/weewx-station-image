@@ -25,6 +25,12 @@ apt-get update
 apt-get install -y --no-install-recommends \
     nginx python3-numpy python3-packaging rtl-sdr unattended-upgrades
 
+# WeeWX and Belchertown format dates and numbers through the system's locales,
+# and the base image has only en_GB. Generate one for each language Belchertown
+# has a translation in, so that a station can use it without a terminal.
+sed -Ei 's/^# *((de_DE|fr_FR|it_IT|ca_ES)\.UTF-8 UTF-8)$/\1/' /etc/locale.gen
+locale-gen
+
 # The WeeWX package looks for this directory to decide whether systemd runs. In
 # a chroot it would otherwise install an init script, which lacks the unit's
 # dependency on the time.
