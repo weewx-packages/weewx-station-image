@@ -82,8 +82,8 @@ weectl station reconfigure --config "$config" --driver=user.rtldavis --no-prompt
 # no time and most Raspberry Pis have no battery clock.
 systemctl enable systemd-time-wait-sync.service
 
-# The dongle, and the log on the status page of the administration.
-usermod -aG plugdev,systemd-journal weewx
+# The dongle, serial loggers, and the log on the status page of the administration.
+usermod -aG plugdev,dialout,systemd-journal weewx
 chown -R weewx:weewx /etc/weewx /var/www/html/weewx /var/lib/weewx
 chmod 440 /etc/sudoers.d/station
 visudo -cq

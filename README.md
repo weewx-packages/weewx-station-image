@@ -5,8 +5,9 @@ open a web page and set everything up there: your station, sensors, extensions,
 uploads and backups. It needs no terminal.
 
 It works with Davis Vantage Pro, Pro2 and Vue stations through an RTL-SDR dongle,
-without a Davis console, and with Ecowitt consoles and gateways. The weather pages
-use the Belchertown skin.
+without a Davis console, and with Ecowitt consoles and gateways. The **Station** page
+also offers WeatherLink loggers, WeatherLink Live, the WeatherLink cloud, Ambient Weather
+consoles, WeatherFlow Tempest and Netatmo. The weather pages use the Belchertown skin.
 
 The image is Raspberry Pi OS Lite with [WeeWX](https://weewx.com/). Everything else
 comes from the [WeeWX packages catalog](https://github.com/weewx-packages/catalog),
@@ -27,6 +28,7 @@ an official Raspberry Pi OS release.
   Europe, 915 MHz in North America, 921 MHz in New Zealand. You need the band and
   the ISS channel, which the console shows.
 - For an Ecowitt station: a console or gateway with **Customized** server upload.
+- For another station: what its driver needs, named on the **Station** page.
 
 ## Installation
 
@@ -49,8 +51,8 @@ Then the **Station** page asks for your kind of station, its name, position, alt
 time zone, units and language. **Save and start** starts WeeWX, and the **Status** page
 shows what the receiver is doing.
 
-For an Ecowitt station, enter the address and port shown on the **Station** page into
-WS View Plus, under **Weather Services**, **Customized**.
+The **Station** page says what your kind of station needs. Drivers other than Davis RTL
+and Ecowitt custom are installed from the catalog when you choose them.
 
 The first weather report appears about five minutes after the first readings. From
 then on the address above shows the weather pages, and the administration is at
@@ -65,8 +67,8 @@ the Raspberry Pi. The page then asks for a new password. Settings and data stay.
 ## Limitations
 
 - The image has been tested on a Raspberry Pi 4, with stand-ins for the dongle and
-  for the Ecowitt console. It has not been tested with a real dongle and a real ISS,
-  or with a real Ecowitt console.
+  for the Ecowitt, Ambient and WeatherFlow hardware. It has not been tested with any
+  real weather station, console or dongle.
 - Raspberry Pi 3 and 5 are untested on real hardware. The Raspberry Pi 3 has slower
   cores: the Davis receiver takes about a third of one Raspberry Pi 4 core during its
   frequency search, so the search can take longer there.
@@ -75,8 +77,8 @@ the Raspberry Pi. The page then asks for a new password. Settings and data stay.
 - Without internet access WeeWX does not start, because it waits for the time.
 - Wi-Fi can be set only in Imager.
 - The first visitor chooses the password, so set it soon after the first start.
-- The administration uses plain HTTP, and the Ecowitt upload has no password. Keep the
-  station on a network you trust.
+- The administration uses plain HTTP, and the Ecowitt and Ambient uploads have no
+  password. Keep the station on a network you trust.
 - Belchertown loads its charts from a public server, so viewers need internet access.
 - The image has 30 languages for dates and numbers. Belchertown has text in German,
   French, Italian and Catalan, in part. All other text stays in English, and the
