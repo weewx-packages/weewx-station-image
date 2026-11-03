@@ -39,8 +39,17 @@ locale-gen
 # a chroot it would otherwise install an init script, which lacks the unit's
 # dependency on the time.
 mkdir /run/systemd/system
-apt-get install -y --no-install-recommends "weewx=$WEEWX_VERSION"
+# WeeWX betas are not in the apt repository, so the beta test of the workflow
+# names the package file in WEEWX_DEB_URL. A released image never sets it.
+if [ -n "${WEEWX_DEB_URL:-}" ]; then
+    curl -fsSL -o /tmp/weewx.deb "$WEEWX_DEB_URL"
+    apt-get install -y --no-install-recommends /tmp/weewx.deb
+    rm /tmp/weewx.deb
+else
+    apt-get install -y --no-install-recommends "weewx=$WEEWX_VERSION"
+fi
 rmdir /run/systemd/system
+test "$(dpkg-query -W -f '${Version}' weewx)" = "$WEEWX_VERSION"
 test -f /usr/lib/systemd/system/weewx.service
 
 # Everything below comes from the catalog, so `station-packages update` and the

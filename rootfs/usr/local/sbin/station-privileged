@@ -43,8 +43,22 @@ case "$action" in
         exec apt-get install -y --no-install-recommends -- "$@"
         ;;
     apt-upgrade)
+        # The WeeWX package enables and starts WeeWX on every upgrade. On a station
+        # whose settings are not saved yet, WeeWX must stay off, because the
+        # administration takes an enabled WeeWX for a station that is set up.
+        enabled=$(systemctl is-enabled weewx || true)
         apt-get update
-        exec apt-get upgrade -y
+        # weewx.conf belongs to the package, and the station has changed it. The
+        # upgrade keeps that version and writes the package's merge beside it.
+        # A new release may bring a new dependency, which plain upgrade would hold
+        # back together with WeeWX.
+        status=0
+        apt-get upgrade -y --with-new-pkgs -o Dpkg::Options::=--force-confdef \
+            -o Dpkg::Options::=--force-confold || status=$?
+        if [ "$enabled" = disabled ]; then
+            systemctl disable --now weewx
+        fi
+        exit "$status"
         ;;
     reboot|poweroff)
         exec systemctl --no-block "$action"
