@@ -1,0 +1,129 @@
+name: Image
+
+# Builds the image and boots it in QEMU with a simulated station. Three lanes:
+# - release (daily): only when WeeWX has a new stable release. The image passes the
+#   test, image.env gets the new WeeWX, and the image is published.
+# - beta (Mondays): only when a WeeWX beta is newer than the pinned WeeWX. Tested,
+#   never published.
+# - current (manual): image.env as it is. Tested, never published.
+# New extension releases build no image: stations get them from the catalog.
+on:
+  schedule:
+    - cron: '17 5 * * *'
+    - cron: '47 5 * * 1'
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: release publishes an image if WeeWX has a new release; beta and current only test
+        type: choice
+        options: [current, beta, release]
+        default: current
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      build: ${{ steps.plan.outputs.build }}
+      release: ${{ steps.plan.outputs.release }}
+      weewx_version: ${{ steps.plan.outputs.weewx_version }}
+      weewx_deb_url: ${{ steps.plan.outputs.weewx_deb_url }}
+      image_version: ${{ steps.plan.outputs.image_version }}
+      sha: ${{ steps.plan.outputs.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # The tags tell plan.py whether IMAGE_VERSION is published already.
+          fetch-depth: 0
+      - id: plan
+        env:
+          LANE: ${{ inputs.lane || (github.event.schedule == '47 5 * * 1' && 'beta') || 'release' }}
+        run: |
+          scripts/plan.py "$LANE" > "$RUNNER_TEMP/plan"
+          cat "$RUNNER_TEMP/plan" | tee -a "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "$LANE: $(sed -n 's/^reason=//p' "$RUNNER_TEMP/plan")" >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.build == 'true'
+    # An arm64 runner builds the arm64 chroot without emulation. QEMU still
+    # emulates the Raspberry Pi for the boot test.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - name: Pin the WeeWX of this run
+        env:
+          WEEWX_VERSION: ${{ needs.plan.outputs.weewx_version }}
+          WEEWX_DEB_URL: ${{ needs.plan.outputs.weewx_deb_url }}
+          IMAGE_VERSION: ${{ needs.plan.outputs.image_version }}
+        run: |
+          sed -i -e "s|^WEEWX_VERSION=.*|WEEWX_VERSION=$WEEWX_VERSION|" \
+              -e "s|^IMAGE_VERSION=.*|IMAGE_VERSION=$IMAGE_VERSION|" image.env
+          if [ -n "$WEEWX_DEB_URL" ]; then echo "WEEWX_DEB_URL=$WEEWX_DEB_URL" >> image.env; fi
+          grep -E '^(IMAGE|WEEWX)_' image.env
+      - run: scripts/build-image.sh
+      - run: scripts/smoke-test.sh
+      - if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: boot-test-log
+          path: dist/boot-test.log
+          if-no-files-found: ignore
+      - if: needs.plan.outputs.release == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: image
+          path: |
+            dist/os-list.json
+            dist/*.img.xz
+            dist/*.img.xz.sha256
+            dist/*.packages.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  release:
+    needs: [plan, build]
+    # A run from another branch would push that branch onto main.
+    if: needs.plan.outputs.release == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: image
+          path: dist
+      - name: Commit image.env and publish the image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WEEWX_VERSION: ${{ needs.plan.outputs.weewx_version }}
+          IMAGE_VERSION: ${{ needs.plan.outputs.image_version }}
+        run: |
+          sed -i -e "s|^WEEWX_VERSION=.*|WEEWX_VERSION=$WEEWX_VERSION|" \
+              -e "s|^IMAGE_VERSION=.*|IMAGE_VERSION=$IMAGE_VERSION|" image.env
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # A rerun of this job finds the commit already made.
+          git diff --quiet || git commit -qam "Build the image with WeeWX ${WEEWX_VERSION%-*}"
+          # The image was built from plan's commit. If main has moved since, the push
+          # fails, and the next daily run builds from the new main.
+          git push origin HEAD:main
+          scripts/release-notes.sh > "$RUNNER_TEMP/notes.md"
+          gh release create "v$IMAGE_VERSION" --target "$(git rev-parse HEAD)" \
+              --title "$IMAGE_VERSION" --notes-file "$RUNNER_TEMP/notes.md" dist/*

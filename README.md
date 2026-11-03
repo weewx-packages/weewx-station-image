@@ -58,6 +58,16 @@ The first weather report appears about five minutes after the first readings. Fr
 then on the address above shows the weather pages, and the administration is at
 `/admin/`. It answers only from your local network.
 
+## Updating the station
+
+Extensions update on the **Extensions** page, one at a time with **Update** or all
+with **Update everything**. WeeWX and Raspberry Pi OS update with **Update the
+system** on the **System** page. Your `weewx.conf` stays as it is; WeeWX puts the
+new version's settings beside it as `weewx.conf-<old>-<new>`.
+
+A new image comes out when WeeWX has a new release. A running station does not need
+it.
+
 ## Forgotten password
 
 Turn the Raspberry Pi off and put the card in a computer. Create an empty file named
@@ -99,8 +109,15 @@ docker run --rm --privileged tonistiigi/binfmt --install arm64
 ```
 
 `image.env` pins every input. `scripts/boot-test.sh` boots a built image in QEMU.
-`tests/standin/` holds a replacement for librtlsdr that plays a simulated ISS, for
-testing a whole station on a Raspberry Pi without a dongle.
+`scripts/smoke-test.sh` boots it the same way, sets up a simulated station through
+the administration and waits for the first weather page. `tests/standin/` holds a
+replacement for librtlsdr that plays a simulated ISS, for testing a whole station on
+a Raspberry Pi without a dongle.
+
+The workflow **Image** checks WeeWX every day. For a new release it builds the image,
+runs the smoke test, commits the new `WEEWX_VERSION` and publishes the image. On
+Mondays it builds and tests the newest WeeWX beta without publishing it. Run it by
+hand with the lane `current` to test `image.env` as it is.
 
 ## License
 
