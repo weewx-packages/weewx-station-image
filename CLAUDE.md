@@ -34,5 +34,7 @@ librtlsdr and proves timing and the whole WeeWX path, not radio reception.
 
 The name must keep "Davis RTL"; "Raspberry Pi" appears only as "for Raspberry Pi",
 with the trademark note in the README. New features belong in the catalog packages,
-not in this image, or they never reach installed stations. Bookworm is not a possible
+not in this image, or they never reach installed stations. For that reason the image
+holds only the rtldavis and ecowittcustom drivers. The administration installs every
+other driver from the catalog when somebody chooses it. Bookworm is not a possible
 base: its librtlsdr lacks the RTL-SDR Blog V4 and zeroes ARM buffers.
