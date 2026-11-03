@@ -18,6 +18,8 @@ and [ecowittcustom](https://github.com/weewx-packages/weewx-ecowittcustom) drive
 [administration](https://github.com/weewx-packages/weewx-station-admin). It is not
 an official Raspberry Pi OS release.
 
+![The Status page of the administration, with the current readings and the state of the Raspberry Pi](docs/images/status.png)
+
 ## Requirements
 
 - Raspberry Pi 3, 4 or 5.
@@ -47,9 +49,11 @@ Open <http://weewx-station.local/> in a browser on the same network. If `.local`
 names do not work on your computer, use the IP address your router shows.
 
 There is no default password. On the first visit the page asks you to choose one.
-Then the **Station** page asks for your kind of station, its name, position, altitude,
-time zone, units and language. **Save and start** starts WeeWX, and the **Status** page
-shows what the receiver is doing.
+Then the **Station** page asks for your kind of station, its name, the title of the
+weather pages, position, altitude, time zone, units and language. **Save and start**
+starts WeeWX, and the **Status** page shows what the receiver is doing.
+
+![The Station page with an Ecowitt console chosen](docs/images/station.png)
 
 The **Station** page says what your kind of station needs. Drivers other than Davis RTL
 and Ecowitt custom are installed from the catalog when you choose them.
@@ -57,6 +61,37 @@ and Ecowitt custom are installed from the catalog when you choose them.
 The first weather report appears about five minutes after the first readings. From
 then on the address above shows the weather pages, and the administration is at
 `/admin/`. It answers only from your local network.
+
+## Managing the station
+
+The administration has a tab for each part of the station:
+
+- **Status**: what the receiver is doing, the current readings, the Raspberry Pi and
+  the log.
+- **Station**: the kind of station and the settings asked for at the setup.
+- **Settings**: every option of `weewx.conf` and of each report, as forms.
+- **Sensors**: what the station receives, and which sensor fills which field.
+- **Database**: columns of the archive.
+- **Extensions**: installed extensions, the catalog, and installing from a link or a
+  file.
+- **Reports**, **Uploads** and **Backup**: weather pages, weather services and backups.
+- **System**: restart, updates, the password and `weewx.conf` as text.
+
+On **Settings**, a report shows each option of its skin with the skin's default. What
+you change there is stored in `weewx.conf` and stays when the skin is updated.
+
+![The Settings page with the Belchertown options for the radar](docs/images/settings.png)
+
+On **Extensions**, a link to a GitHub repository, one of its releases, or a `.zip` or
+`.tar.gz` file installs an extension. Further catalogs can be added at the bottom of
+the page.
+
+![The Extensions page with the installed extensions and the field for a link](docs/images/extensions.png)
+
+The administration follows the language of the browser, English or German, and the
+light or dark mode of the device. It also works on a phone.
+
+<img src="docs/images/status-phone.png" alt="The Status page on a phone in dark mode" width="300">
 
 ## Updating the station
 
@@ -91,8 +126,8 @@ the Raspberry Pi. The page then asks for a new password. Settings and data stay.
   password. Keep the station on a network you trust.
 - Belchertown loads its charts from a public server, so viewers need internet access.
 - The image has 30 languages for dates and numbers. Belchertown has text in German,
-  French, Italian and Catalan, in part. All other text stays in English, and the
-  administration is in English only.
+  French, Italian and Catalan, in part. All other text stays in English. The
+  administration is in English and German.
 
 ## Development
 
