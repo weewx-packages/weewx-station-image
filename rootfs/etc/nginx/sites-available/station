@@ -18,6 +18,10 @@ server {
     root /var/www/html/weewx;
     index index.html;
     absolute_redirect off;
+    # A display that polls every few seconds wrote megabytes a day into the access
+    # log on the card. Errors go to the journal, which lives in memory.
+    access_log off;
+    error_log syslog:server=unix:/dev/log,nohostname warn;
 
     # Until the first report exists, the administration is the start page.
     location = / {

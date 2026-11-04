@@ -119,6 +119,10 @@ the Raspberry Pi. The page then asks for a new password. Settings and data stay.
   frequency search, so the search can take longer there.
 - Raspberry Pi Zero 2 W is not supported, although Imager offers the image for it. It
   has 512 MB of memory and slower cores than a Raspberry Pi 3.
+- To spare the card, the weather pages and the log are kept in memory. After a
+  restart the log starts empty, and the weather pages come back with the next report,
+  about five minutes later. Until then the address shows the administration. The
+  database, the settings and the backups stay on the card.
 - Without internet access WeeWX does not start, because it waits for the time.
 - Wi-Fi can be set only in Imager.
 - The first visitor chooses the password, so set it soon after the first start.

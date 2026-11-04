@@ -93,6 +93,7 @@ check "WeeWX before setup" "$(station systemctl is-enabled weewx || true)" disab
 
 api setup-password '{"password": "smoke-test-password"}' >/dev/null
 job=$(api station '{"driver": "simulator", "location": "Smoke test",
+    "title": "Smoke test",
     "latitude": 50.1, "longitude": 8.7, "altitude": 100, "altitude_unit": "meter",
     "timezone": "Europe/Berlin", "units": "metricwx", "language": "en_GB.UTF-8"}' |
     python3 -c 'import json, sys; print(json.load(sys.stdin)["job"])')
