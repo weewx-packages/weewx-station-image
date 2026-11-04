@@ -21,6 +21,10 @@ weewx weewx/units select metricwx
 weewx weewx/station_type select Simulator
 SELECTIONS
 
+# Raspberry Pi OS adds armhf for 32-bit programs, and the station has none. The
+# architecture doubles the package lists that apt-daily writes to the card.
+dpkg --remove-architecture armhf
+
 apt-get update
 apt-get install -y --no-install-recommends \
     nginx python3-numpy python3-packaging rtl-sdr unattended-upgrades
@@ -99,7 +103,14 @@ visudo -cq
 
 # WeeWX stays off until the administration has the station's settings.
 systemctl disable weewx.service
-systemctl enable station-admin.service station-admin-reset.service nginx.service
+systemctl enable station-admin.service station-admin-reset.service nginx.service \
+    var-www-html-weewx.mount
+
+# Nobody reads manual pages on the station, so man-db needs no daily index run on
+# the card. The base image may bring a swap file, which the station does not use
+# (see /etc/rpi/swap.conf.d/station.conf).
+systemctl disable man-db.timer
+rm -f /var/swap
 
 rm -f /etc/nginx/sites-enabled/default
 ln -s ../sites-available/station /etc/nginx/sites-enabled/station

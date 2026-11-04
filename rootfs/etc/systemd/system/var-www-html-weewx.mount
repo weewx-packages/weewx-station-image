@@ -1,0 +1,15 @@
+# The reports rewrite their pages every archive interval, and nothing in them is
+# lost with a restart: WeeWX writes them again from the database with the next
+# report. In memory they spare the card. The owner comes from
+# /etc/tmpfiles.d/station.conf, which runs after this mount.
+[Unit]
+Description=Weather pages in memory
+
+[Mount]
+What=tmpfs
+Where=/var/www/html/weewx
+Type=tmpfs
+Options=mode=0755,size=64m,nosuid,nodev,noexec
+
+[Install]
+WantedBy=local-fs.target

@@ -47,3 +47,11 @@ not in this image, or they never reach installed stations. For that reason the i
 holds only the rtldavis and ecowittcustom drivers. The administration installs every
 other driver from the catalog when somebody chooses it. Bookworm is not a possible
 base: its librtlsdr lacks the RTL-SDR Blog V4 and zeroes ARM buffers.
+
+Only the database, `weewx.conf`, the state of the administration and updates may
+write to the card. The reports live in a tmpfs on `/var/www/html/weewx`, the journal
+is volatile, nginx keeps no access log, swap is zram without a backing file, and apt
+keeps compressed lists without caches (`rootfs/etc/apt/apt.conf.d/90station`). A new
+service or report that writes regularly goes to `/run` or below the report root.
+Check a change with `inotifywait -mr` over `/var /etc /home /root` on a running
+station.

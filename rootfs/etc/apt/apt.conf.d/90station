@@ -1,0 +1,11 @@
+// apt-daily refreshes the package lists every day. They took 150 MB on the card,
+// and every change to one of them rewrote two caches of 70 MB each. Compressed,
+// for arm64 only (see customize.sh) and without translated descriptions, the lists
+// take about 20 MB. apt builds its cache in memory for each run instead, which
+// takes about five seconds on a Raspberry Pi 4.
+Acquire::Languages "none";
+Acquire::GzipIndexes "true";
+Dir::Cache::pkgcache "";
+Dir::Cache::srcpkgcache "";
+// Installed packages need not stay in /var/cache/apt/archives.
+APT::Keep-Downloaded-Packages "false";
